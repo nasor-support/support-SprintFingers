@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sprint Fingers — Le sprint au bout des doigts</title>
+  <meta id="meta-description" name="description" content="Sprint Fingers est un jeu d’athlétisme tactile sur iPhone. Posez deux doigts, sprintez sur 100 m, 400 m et haies, battez vos records et défiez le monde entier.">
+  <style>
+    :root{
+      --blue:#0f47d7;
+      --blue-dark:#062a83;
+      --blue-soft:#edf4ff;
+      --yellow:#ffcd18;
+      --yellow-deep:#ffb000;
+      --orange:#ff7a1a;
+      --red:#ff4a32;
+      --track:#d95733;
+      --text:#08204f;
+      --white:#ffffff;
+      --card-shadow:0 18px 40px rgba(1,18,66,.18);
+      --radius:28px;
+      --max:1180px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:#fff;
+      background:
+        linear-gradient(180deg,rgba(8,33,98,.06) 0%,rgba(8,33,98,.38) 18%,rgba(8,33,98,.12) 44%,rgba(217,87,51,.18) 100%),
+        url('assets/stadium-bg.png') center top / cover fixed no-repeat;
+      min-height:100vh;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(180deg,rgba(19,67,190,.15),rgba(19,67,190,0) 25%,rgba(255,122,26,.15) 100%);
+      z-index:-1;
+    }
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+    .shell{width:min(var(--max),calc(100% - 32px));margin:0 auto}
+    .nav{
+      position:sticky;top:0;z-index:30;
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      background:rgba(6,18,62,.55);
+      border-bottom:1px solid rgba(255,255,255,.16);
+    }
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:16px 0}
+    .brand img{height:60px;display:block}
+    .nav-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-left:auto}
+    .nav-links{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+    .nav-links a{font-weight:800;color:#fff;opacity:.95}
+    .nav-links a:hover{opacity:1;text-shadow:0 0 14px rgba(255,255,255,.55)}
+    .pill-buy{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:12px 18px;border-radius:999px;
+      background:linear-gradient(180deg,#ffd83f,#ffb400);
+      color:#111;font-weight:900;box-shadow:0 12px 24px rgba(0,0,0,.2)
+    }
+    .lang-switch{
+      display:flex;align-items:center;
+      padding:3px;
+      border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;
+      background:rgba(4,20,72,.54);
+      box-shadow:0 8px 20px rgba(0,0,0,.16);
+      flex:0 0 auto;
+    }
+    .lang-switch button{
+      border:0;
+      cursor:pointer;
+      padding:8px 11px;
+      border-radius:999px;
+      background:transparent;
+      color:#fff;
+      font-size:13px;
+      line-height:1;
+      font-weight:950;
+      letter-spacing:.03em;
+      transition:background .18s ease,color .18s ease,transform .18s ease;
+    }
+    .lang-switch button:hover{transform:translateY(-1px)}
+    .lang-switch button.active{
+      color:#08204f;
+      background:#fff;
+      box-shadow:0 3px 10px rgba(0,0,0,.16);
+    }
+
+    .hero{padding:48px 0 28px}
+    .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center}
+    .headline-card{
+      padding:34px 34px 30px;border-radius:36px;
+      background:linear-gradient(180deg,rgba(11,57,188,.88),rgba(7,34,116,.88));
+      box-shadow:var(--card-shadow);
+      border:2px solid rgba(255,255,255,.18);
+    }
+    .eyebrow{
+      display:inline-block;margin-bottom:12px;padding:8px 14px;border-radius:999px;
+      font-size:14px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;
+      background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18)
+    }
+    .logo-hero{max-width:520px;width:100%;display:block;margin:0 0 10px}
+    .hero h1{
+      margin:0 0 14px;font-size:clamp(34px,5vw,68px);line-height:.95;font-weight:1000;
+      text-shadow:0 10px 24px rgba(0,0,0,.25)
+    }
+    .hero h1 .accent{display:block;color:var(--yellow);text-shadow:0 6px 0 rgba(0,0,0,.15),0 12px 28px rgba(0,0,0,.28)}
+    .hero p.lead{font-size:clamp(18px,2vw,23px);line-height:1.4;margin:0 0 18px;color:#eef5ff;max-width:650px}
+    .hero .mini-copy{font-size:18px;line-height:1.55;color:#e6efff;max-width:660px;margin-bottom:22px}
+    .buy-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:18px 0 10px}
+    .cta-appstore{display:inline-flex;align-items:center;gap:12px;padding:16px 22px;border-radius:999px;background:#080808;color:#fff;font-weight:900;box-shadow:0 16px 28px rgba(0,0,0,.28)}
+    .cta-appstore .price{color:#ffd44d}
+    .sub-slogan{font-size:clamp(24px,3vw,38px);font-weight:1000;font-style:italic;color:#fffad1;text-shadow:0 6px 18px rgba(0,0,0,.25);margin-top:8px}
+    .hero-visual{
+      position:relative;
+      padding:20px;
+      border-radius:38px;
+      background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));
+      border:1px solid rgba(255,255,255,.25);
+      box-shadow:var(--card-shadow);
+      overflow:hidden;
+      min-height:720px;
+      display:flex;align-items:flex-end;justify-content:center;
+    }
+    .hero-visual::before{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(circle at 50% 10%,rgba(255,255,255,.34),transparent 38%),
+                 linear-gradient(180deg,rgba(12,76,232,.32),rgba(217,87,51,.15));
+      z-index:0
+    }
+    .hero-visual img{position:relative;z-index:1;max-width:100%;height:auto;display:block;filter:drop-shadow(0 26px 44px rgba(0,0,0,.28))}
+    .bubble-note{
+      position:absolute;z-index:2;max-width:170px;padding:16px 18px;border-radius:22px;
+      background:rgba(12,60,181,.86);border:2px solid rgba(255,255,255,.18);box-shadow:0 12px 28px rgba(2,16,59,.28);
+      font-weight:900;font-size:24px;line-height:1.05;text-align:center;color:#fff
+    }
+    .bubble-note small{display:block;margin-top:6px;font-size:16px;color:#ffea86;font-weight:800}
+    .bubble-note.right-top{top:32px;right:18px;transform:rotate(-6deg)}
+    .bubble-note.right-mid{right:8px;top:52%;transform:rotate(-7deg)}
+    .section{padding:26px 0}
+    .card-panel{
+      background:rgba(255,255,255,.93);
+      color:var(--text);
+      border-radius:var(--radius);
+      box-shadow:var(--card-shadow);
+      padding:28px;
+      border:2px solid rgba(255,255,255,.55)
+    }
+    .section-title{
+      margin:0 0 18px;
+      font-size:clamp(30px,4vw,52px);line-height:1;
+      color:var(--blue);font-weight:1000;
+      text-shadow:0 4px 0 rgba(255,205,24,.22)
+    }
+    .section-sub{margin:0 0 22px;font-size:20px;color:#31518f;font-weight:700}
+    .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .step-card{
+      background:linear-gradient(180deg,#ffffff,#f4f8ff);
+      border-radius:24px;padding:18px;border:2px solid #dce9ff;
+      box-shadow:0 10px 22px rgba(22,63,151,.08)
+    }
+    .step-num{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--blue);color:#fff;font-size:28px;font-weight:1000;margin-bottom:10px;box-shadow:0 8px 18px rgba(15,71,215,.28)}
+    .step-card h3{margin:0 0 12px;font-size:28px;line-height:1.1;color:#133fbd}
+    .step-card p{margin:0 0 14px;font-size:18px;line-height:1.45;color:#27467f}
+    .step-card img{width:100%;height:190px;object-fit:cover;border-radius:18px;border:2px solid #e4eeff;background:#f8fbff}
+    .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+    .mode-pill{display:block;background:transparent}
+    .mode-pill img{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 18px rgba(2,35,124,.24))}
+    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .feature{
+      display:flex;gap:14px;align-items:flex-start;background:linear-gradient(180deg,#fff,#f3f8ff);
+      border:2px solid #deebff;border-radius:22px;padding:18px
+    }
+    .feature .icon{
+      flex:0 0 60px;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+      background:linear-gradient(180deg,#1562ff,#0c43cc);color:#fff;font-size:30px;box-shadow:0 8px 18px rgba(15,71,215,.22)
+    }
+    .feature h3{margin:0 0 6px;color:#1037a0;font-size:25px;line-height:1.05}
+    .feature p{margin:0;color:#395179;font-size:17px;line-height:1.45}
+    .screens-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:end}
+    .phone-card{text-align:center}
+    .phone-card img{width:100%;max-width:290px;border-radius:28px;box-shadow:0 18px 34px rgba(5,23,77,.22);display:block;margin:0 auto 14px}
+    .phone-card h3{margin:0 0 8px;font-size:26px;color:#133fbd}
+    .phone-card p{margin:0;color:#3f5988;font-size:17px;line-height:1.45}
+    .summary-box{
+      margin-top:22px;padding:22px 24px;border-radius:24px;
+      background:linear-gradient(180deg,#ffffff,#f3f7ff);
+      border:2px solid #dde8ff;color:#18387d;font-size:20px;line-height:1.6;font-weight:700
+    }
+    .summary-box strong{color:#1037a0}
+    .big-cta{
+      text-align:center;padding:34px 24px 18px;border-radius:36px;
+      background:linear-gradient(180deg,rgba(13,72,216,.92),rgba(8,45,138,.92));
+      box-shadow:var(--card-shadow);border:2px solid rgba(255,255,255,.18)
+    }
+    .big-cta h2{margin:0 0 10px;font-size:clamp(32px,4.5vw,58px);line-height:1;color:#fff;font-weight:1000}
+    .big-cta p{margin:0 auto 18px;max-width:760px;font-size:22px;line-height:1.45;color:#edf5ff;font-weight:700}
+    .big-cta .buy-row{justify-content:center}
+    .bottom-mascot{width:min(220px,60vw);display:block;margin:0 auto 10px}
+    .footer-note{margin-top:14px;font-size:18px;color:#ffeb95;font-weight:900;font-style:italic}
+    footer{padding:26px 0 46px;text-align:center;color:#f6f8ff;font-weight:700;text-shadow:0 4px 12px rgba(0,0,0,.25)}
+
+    @media (max-width:1080px){
+      .hero-grid,.how-grid,.feature-grid,.screens-grid,.modes{grid-template-columns:1fr 1fr}
+      .hero-visual{min-height:620px}
+      .nav-actions{gap:10px}
+      .nav-links{gap:12px}
+    }
+    @media (max-width:760px){
+      .nav-inner{flex-direction:column;align-items:stretch;gap:12px}
+      .nav-actions{width:100%;justify-content:space-between;align-items:flex-start}
+      .nav-links{gap:10px}
+      .nav-links a:not(.pill-buy){font-size:14px}
+      .lang-switch{margin-left:auto}
+      .hero-grid,.how-grid,.feature-grid,.screens-grid,.modes{grid-template-columns:1fr}
+      .headline-card,.card-panel,.big-cta{padding:22px}
+      .bubble-note{font-size:19px;max-width:132px;padding:12px 14px}
+      .bubble-note small{font-size:13px}
+      .hero-visual{min-height:auto;padding:16px}
+      .hero-visual img{max-width:92%}
+      .brand img{height:46px}
+      .hero{padding-top:24px}
+      .step-card img{height:auto}
+      .section-sub,.big-cta p,.summary-box{font-size:18px}
+    }
+    @media (max-width:560px){
+      .nav-actions{align-items:flex-end}
+      .nav-links{flex:1}
+      .nav-links a:not(.pill-buy){display:none}
+      .pill-buy{padding:10px 14px;font-size:14px}
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="#top"><img src="assets/logo.png" alt="Sprint Fingers"></a>
+
+      <div class="nav-actions">
+        <nav class="nav-links" aria-label="Navigation principale">
+          <a href="#comment-jouer" data-i18n="navHow">Comment jouer</a>
+          <a href="#epreuves" data-i18n="navEvents">Épreuves</a>
+          <a href="#pourquoi" data-i18n="navWhy">Pourquoi l’aimer</a>
+          <a href="#apercus" data-i18n="navPreview">Aperçus</a>
+          <a class="pill-buy" href="#acheter" data-i18n="navPrice">iPhone • 0,99 €</a>
+        </nav>
+
+        <div class="lang-switch" role="group" aria-label="Choisir la langue">
+          <button type="button" id="lang-fr" class="active" data-lang="fr" aria-pressed="true">FR</button>
+          <button type="button" id="lang-en" data-lang="en" aria-pressed="false">ENG</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div class="headline-card">
+          <div class="eyebrow" data-i18n="eyebrow">Jeu d’athlétisme tactile • iPhone</div>
+          <img class="logo-hero" src="assets/logo.png" alt="Sprint Fingers">
+          <h1 data-i18n-html="heroTitle">Le sprint le plus fun… <span class="accent">au bout des doigts&nbsp;!</span></h1>
+          <p class="lead" data-i18n="heroLead">Placez deux doigts sur l’écran, enchaînez les appuis et propulsez votre coureur jusqu’à la ligne d’arrivée.</p>
+          <div class="mini-copy" data-i18n="heroCopy">Un jeu d’athlétisme arcade rapide, coloré et addictif. Battez vos records, personnalisez votre profil et comparez vos chronos avec les autres joueurs grâce au classement mondial.</div>
+          <div class="buy-row">
+            <a class="cta-appstore" href="#acheter" data-i18n-html="heroBuy">Acheter sur l’App Store <span class="price">• 0,99 €</span></a>
+            <span class="pill-buy" data-i18n="available">Disponible sur iPhone</span>
+          </div>
+          <div class="sub-slogan" data-i18n="heroSlogan">Touchez. Courez. Gagnez&nbsp;!</div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="bubble-note right-top" data-i18n-html="bubble1">Petits doigts,<small>grandes victoires&nbsp;!</small></div>
+          <div class="bubble-note right-mid" data-i18n-html="bubble2">Deux doigts<small>pour faire courir&nbsp;!</small></div>
+          <img
+            id="hero-phone-hand"
+            src="assets/hero-phone-hand.png"
+            data-src-fr="assets/hero-phone-hand.png"
+            data-src-en="assets/hero-phone-hand-en.png"
+            alt="Main posant deux doigts sur l’écran de Sprint Fingers"
+            data-i18n-alt="heroImageAlt">
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="comment-jouer">
+      <div class="shell card-panel">
+        <h2 class="section-title" data-i18n="howTitle">Comment ça marche&nbsp;?</h2>
+        <p class="section-sub" data-i18n="howSub">Trois étapes, une piste, et vos doigts se transforment en sprinteurs.</p>
+
+        <div class="how-grid">
+          <article class="step-card">
+            <div class="step-num">1</div>
+            <h3 data-i18n="step1Title">Placez vos doigts sur les starting-blocks</h3>
+            <p data-i18n="step1Text">Posez deux doigts d’une même main sur les zones prévues à l’écran pour vous mettre en position de départ.</p>
+            <img src="assets/step-1.png" alt="Doigts positionnés sur les starting-blocks" data-i18n-alt="step1Alt">
+          </article>
+
+          <article class="step-card">
+            <div class="step-num">2</div>
+            <h3 data-i18n="step2Title">Alternez vos appuis pour accélérer</h3>
+            <p data-i18n="step2Text">Faites travailler vos doigts comme des jambes&nbsp;: plus votre rythme est bon, plus votre athlète file vers la ligne.</p>
+            <img src="assets/step-2.png" alt="Mascotte de Sprint Fingers en pleine accélération" data-i18n-alt="step2Alt">
+          </article>
+
+          <article class="step-card">
+            <div class="step-num">3</div>
+            <h3 data-i18n="step3Title">Franchissez la ligne et battez vos records</h3>
+            <p data-i18n="step3Text">Enchaînez les courses, améliorez vos temps et grimpez dans les classements personnels et mondiaux.</p>
+            <img src="assets/step-3.png" alt="Visuel d’arrivée Sprint Fingers" data-i18n-alt="step3Alt">
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="epreuves">
+      <div class="shell card-panel">
+        <h2 class="section-title" data-i18n="eventsTitle">Les épreuves</h2>
+        <p class="section-sub" data-i18n="eventsSub">Quatre défis pour tester votre vitesse, vos réflexes et votre régularité.</p>
+        <div class="modes">
+          <a class="mode-pill" href="#acheter"><img src="assets/mode-100.png" alt="Épreuve 100 m" data-i18n-alt="mode100Alt"></a>
+          <a class="mode-pill" href="#acheter"><img src="assets/mode-400.png" alt="Épreuve 400 m" data-i18n-alt="mode400Alt"></a>
+          <a class="mode-pill" href="#acheter"><img
+            id="mode-110h"
+            src="assets/mode-110h.png"
+            data-src-fr="assets/mode-110h.png"
+            data-src-en="assets/mode-110h-en.png"
+            alt="Épreuve 110 m haies"
+            data-i18n-alt="mode110Alt"></a>
+          <a class="mode-pill" href="#acheter"><img
+            id="mode-400h"
+            src="assets/mode-400h.png"
+            data-src-fr="assets/mode-400h.png"
+            data-src-en="assets/mode-400h-en.png"
+            alt="Épreuve 400 m haies"
+            data-i18n-alt="mode400hAlt"></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pourquoi">
+      <div class="shell card-panel">
+        <h2 class="section-title" data-i18n="whyTitle">Pourquoi vous allez aimer Sprint Fingers</h2>
+
+        <div class="feature-grid">
+          <article class="feature">
+            <div class="icon">⚡</div>
+            <div><h3 data-i18n="feature1Title">Gameplay immédiat</h3><p data-i18n="feature1Text">Simple à comprendre, satisfaisant à maîtriser et fun dès les premières secondes.</p></div>
+          </article>
+          <article class="feature">
+            <div class="icon">🏃</div>
+            <div><h3 data-i18n="feature2Title">Sensations de course</h3><p data-i18n="feature2Text">Départs explosifs, faux départs, arrivée intense et rythme nerveux sur chaque course.</p></div>
+          </article>
+          <article class="feature">
+            <div class="icon">📈</div>
+            <div><h3 data-i18n="feature3Title">Records personnels</h3><p data-i18n="feature3Text">Progressez, améliorez vos meilleurs chronos et mesurez vos progrès au fil des courses.</p></div>
+          </article>
+          <article class="feature">
+            <div class="icon">🏆</div>
+            <div><h3 data-i18n="feature4Title">Classement mondial</h3><p data-i18n="feature4Text">Comparez vos temps avec les joueurs du monde entier grâce à l’intégration Game Center.</p></div>
+          </article>
+          <article class="feature">
+            <div class="icon">👤</div>
+            <div><h3 data-i18n="feature5Title">Profil joueur</h3><p data-i18n="feature5Text">Personnalisez votre expérience et suivez vos performances dans une interface claire et dynamique.</p></div>
+          </article>
+          <article class="feature">
+            <div class="icon">🎉</div>
+            <div><h3 data-i18n="feature6Title">Ambiance sportive</h3><p data-i18n="feature6Text">Une direction artistique colorée et énergique, inspirée des grands stades d’athlétisme.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="apercus">
+      <div class="shell card-panel">
+        <h2 class="section-title" data-i18n="previewTitle">Aperçus de l’app</h2>
+        <p class="section-sub" data-i18n="previewSub">Un univers fun, immersif et immédiatement lisible pour jouer, progresser et se mesurer au monde entier.</p>
+
+        <div class="screens-grid">
+          <article class="phone-card">
+            <img
+              id="shot-home"
+              src="assets/shot-home.png"
+              data-src-fr="assets/shot-home.png"
+              data-src-en="assets/shot-home-en.png"
+              alt="Écran d’accueil de Sprint Fingers"
+              data-i18n-alt="shotHomeAlt">
+            <h3 data-i18n="shotHomeTitle">Menu d’accueil</h3>
+            <p data-i18n="shotHomeText">Choisissez votre épreuve et plongez instantanément dans l’ambiance du stade.</p>
+          </article>
+
+          <article class="phone-card">
+            <img
+              id="shot-profile"
+              src="assets/shot-profile.png"
+              data-src-fr="assets/shot-profile.png"
+              data-src-en="assets/shot-profile-en.png"
+              alt="Écran profil de Sprint Fingers"
+              data-i18n-alt="shotProfileAlt">
+            <h3 data-i18n="shotProfileTitle">Profil joueur</h3>
+            <p data-i18n="shotProfileText">Personnalisez votre coureur et gardez un œil sur vos informations et vos performances.</p>
+          </article>
+
+          <article class="phone-card">
+            <img
+              id="shot-world"
+              src="assets/shot-world.png"
+              data-src-fr="assets/shot-world.png"
+              data-src-en="assets/shot-world-en.png"
+              alt="Classement mondial Sprint Fingers"
+              data-i18n-alt="shotWorldAlt">
+            <h3 data-i18n="shotWorldTitle">Classement mondial</h3>
+            <p data-i18n="shotWorldText">Mesurez-vous à la communauté entière et voyez jusqu’où vos doigts vous mènent.</p>
+          </article>
+        </div>
+
+        <div class="summary-box" data-i18n-html="summary"><strong>Sprint Fingers</strong> transforme la vitesse en défi tactile. Facile à prendre en main, fun dès les premières secondes et suffisamment addictif pour vouloir battre son chrono encore et encore, le jeu vous invite à sprinter du bout des doigts, à améliorer vos records et à vous mesurer aux meilleurs temps mondiaux.</div>
+      </div>
+    </section>
+
+    <section class="section" id="acheter">
+      <div class="shell big-cta">
+        <img class="bottom-mascot" src="assets/bottom-cta-mascot.png" alt="Mascotte Sprint Fingers" data-i18n-alt="bottomMascotAlt">
+        <h2 data-i18n="ctaTitle">Prêt à entrer dans les starting-blocks&nbsp;?</h2>
+        <p data-i18n-html="ctaText">Téléchargez Sprint Fingers sur iPhone et lancez-vous dans la course pour seulement <strong>0,99 €</strong>.</p>
+        <div class="buy-row">
+          <a class="cta-appstore" href="#" data-i18n-html="ctaButton">Acheter sur l’App Store <span class="price">• iPhone • 0,99 €</span></a>
+        </div>
+        <div class="footer-note" data-i18n="ctaNote">La course commence maintenant&nbsp;!</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell" data-i18n="footer">Sprint Fingers • Jeu iPhone • 0,99 €</div>
+  </footer>
+
+  <script>
+    const translations = {
+      fr: {
+        pageTitle: "Sprint Fingers — Le sprint au bout des doigts",
+        metaDescription: "Sprint Fingers est un jeu d’athlétisme tactile sur iPhone. Posez deux doigts, sprintez sur 100 m, 400 m et haies, battez vos records et défiez le monde entier.",
+        navHow: "Comment jouer",
+        navEvents: "Épreuves",
+        navWhy: "Pourquoi l’aimer",
+        navPreview: "Aperçus",
+        navPrice: "iPhone • 0,99 €",
+        eyebrow: "Jeu d’athlétisme tactile • iPhone",
+        heroTitle: 'Le sprint le plus fun… <span class="accent">au bout des doigts&nbsp;!</span>',
+        heroLead: "Placez deux doigts sur l’écran, enchaînez les appuis et propulsez votre coureur jusqu’à la ligne d’arrivée.",
+        heroCopy: "Un jeu d’athlétisme arcade rapide, coloré et addictif. Battez vos records, personnalisez votre profil et comparez vos chronos avec les autres joueurs grâce au classement mondial.",
+        heroBuy: 'Acheter sur l’App Store <span class="price">• 0,99 €</span>',
+        available: "Disponible sur iPhone",
+        heroSlogan: "Touchez. Courez. Gagnez !",
+        bubble1: 'Petits doigts,<small>grandes victoires&nbsp;!</small>',
+        bubble2: 'Deux doigts<small>pour faire courir&nbsp;!</small>',
+        heroImageAlt: "Main posant deux doigts sur l’écran de Sprint Fingers",
+        howTitle: "Comment ça marche ?",
+        howSub: "Trois étapes, une piste, et vos doigts se transforment en sprinteurs.",
+        step1Title: "Placez vos doigts sur les starting-blocks",
+        step1Text: "Posez deux doigts d’une même main sur les zones prévues à l’écran pour vous mettre en position de départ.",
+        step1Alt: "Doigts positionnés sur les starting-blocks",
+        step2Title: "Alternez vos appuis pour accélérer",
+        step2Text: "Faites travailler vos doigts comme des jambes : plus votre rythme est bon, plus votre athlète file vers la ligne.",
+        step2Alt: "Mascotte de Sprint Fingers en pleine accélération",
+        step3Title: "Franchissez la ligne et battez vos records",
+        step3Text: "Enchaînez les courses, améliorez vos temps et grimpez dans les classements personnels et mondiaux.",
+        step3Alt: "Visuel d’arrivée Sprint Fingers",
+        eventsTitle: "Les épreuves",
+        eventsSub: "Quatre défis pour tester votre vitesse, vos réflexes et votre régularité.",
+        mode100Alt: "Épreuve 100 m",
+        mode400Alt: "Épreuve 400 m",
+        mode110Alt: "Épreuve 110 m haies",
+        mode400hAlt: "Épreuve 400 m haies",
+        whyTitle: "Pourquoi vous allez aimer Sprint Fingers",
+        feature1Title: "Gameplay immédiat",
+        feature1Text: "Simple à comprendre, satisfaisant à maîtriser et fun dès les premières secondes.",
+        feature2Title: "Sensations de course",
+        feature2Text: "Départs explosifs, faux départs, arrivée intense et rythme nerveux sur chaque course.",
+        feature3Title: "Records personnels",
+        feature3Text: "Progressez, améliorez vos meilleurs chronos et mesurez vos progrès au fil des courses.",
+        feature4Title: "Classement mondial",
+        feature4Text: "Comparez vos temps avec les joueurs du monde entier grâce à l’intégration Game Center.",
+        feature5Title: "Profil joueur",
+        feature5Text: "Personnalisez votre expérience et suivez vos performances dans une interface claire et dynamique.",
+        feature6Title: "Ambiance sportive",
+        feature6Text: "Une direction artistique colorée et énergique, inspirée des grands stades d’athlétisme.",
+        previewTitle: "Aperçus de l’app",
+        previewSub: "Un univers fun, immersif et immédiatement lisible pour jouer, progresser et se mesurer au monde entier.",
+        shotHomeAlt: "Écran d’accueil de Sprint Fingers",
+        shotHomeTitle: "Menu d’accueil",
+        shotHomeText: "Choisissez votre épreuve et plongez instantanément dans l’ambiance du stade.",
+        shotProfileAlt: "Écran profil de Sprint Fingers",
+        shotProfileTitle: "Profil joueur",
+        shotProfileText: "Personnalisez votre coureur et gardez un œil sur vos informations et vos performances.",
+        shotWorldAlt: "Classement mondial Sprint Fingers",
+        shotWorldTitle: "Classement mondial",
+        shotWorldText: "Mesurez-vous à la communauté entière et voyez jusqu’où vos doigts vous mènent.",
+        summary: "<strong>Sprint Fingers</strong> transforme la vitesse en défi tactile. Facile à prendre en main, fun dès les premières secondes et suffisamment addictif pour vouloir battre son chrono encore et encore, le jeu vous invite à sprinter du bout des doigts, à améliorer vos records et à vous mesurer aux meilleurs temps mondiaux.",
+        bottomMascotAlt: "Mascotte Sprint Fingers",
+        ctaTitle: "Prêt à entrer dans les starting-blocks ?",
+        ctaText: "Téléchargez Sprint Fingers sur iPhone et lancez-vous dans la course pour seulement <strong>0,99 €</strong>.",
+        ctaButton: 'Acheter sur l’App Store <span class="price">• iPhone • 0,99 €</span>',
+        ctaNote: "La course commence maintenant !",
+        footer: "Sprint Fingers • Jeu iPhone • 0,99 €"
+      },
+      en: {
+        pageTitle: "Sprint Fingers — Sprint at your fingertips",
+        metaDescription: "Sprint Fingers is a touch athletics game for iPhone. Use two fingers, race the 100 m, 400 m and hurdles, beat your records and challenge players worldwide.",
+        navHow: "How to play",
+        navEvents: "Events",
+        navWhy: "Why you’ll love it",
+        navPreview: "App previews",
+        navPrice: "iPhone • €0.99",
+        eyebrow: "Touch athletics game • iPhone",
+        heroTitle: 'The most fun sprint… <span class="accent">at your fingertips!</span>',
+        heroLead: "Place two fingers on the screen, alternate your taps and propel your runner all the way to the finish line.",
+        heroCopy: "A fast, colorful and addictive arcade athletics game. Beat your records, customize your profile and compare your times with other players on the world leaderboard.",
+        heroBuy: 'Buy on the App Store <span class="price">• €0.99</span>',
+        available: "Available on iPhone",
+        heroSlogan: "Tap. Run. Win!",
+        bubble1: 'Small fingers,<small>big victories!</small>',
+        bubble2: 'Two fingers<small>to make them run!</small>',
+        heroImageAlt: "Hand placing two fingers on the Sprint Fingers screen",
+        howTitle: "How does it work?",
+        howSub: "Three steps, one track, and your fingers become sprinters.",
+        step1Title: "Place your fingers on the starting blocks",
+        step1Text: "Place two fingers from the same hand on the marked areas of the screen to get into the starting position.",
+        step1Alt: "Fingers positioned on the starting blocks",
+        step2Title: "Alternate your taps to accelerate",
+        step2Text: "Make your fingers work like legs: the better your rhythm, the faster your athlete races toward the line.",
+        step2Alt: "Sprint Fingers mascot accelerating",
+        step3Title: "Cross the line and beat your records",
+        step3Text: "Keep racing, improve your times and climb both the personal and world leaderboards.",
+        step3Alt: "Sprint Fingers finish-line visual",
+        eventsTitle: "Events",
+        eventsSub: "Four challenges to test your speed, reflexes and consistency.",
+        mode100Alt: "100 m event",
+        mode400Alt: "400 m event",
+        mode110Alt: "110 m hurdles event",
+        mode400hAlt: "400 m hurdles event",
+        whyTitle: "Why you’ll love Sprint Fingers",
+        feature1Title: "Instant gameplay",
+        feature1Text: "Easy to understand, satisfying to master and fun from the very first seconds.",
+        feature2Title: "Race feel",
+        feature2Text: "Explosive starts, false starts, intense finishes and fast-paced action in every race.",
+        feature3Title: "Personal records",
+        feature3Text: "Improve, beat your best times and track your progress race after race.",
+        feature4Title: "World leaderboard",
+        feature4Text: "Compare your times with players worldwide through Game Center.",
+        feature5Title: "Player profile",
+        feature5Text: "Customize your experience and track your performance in a clear, dynamic interface.",
+        feature6Title: "Stadium atmosphere",
+        feature6Text: "A colorful, energetic art direction inspired by the world’s great athletics stadiums.",
+        previewTitle: "App previews",
+        previewSub: "A fun, immersive world that is instantly readable, built for playing, improving and competing with the world.",
+        shotHomeAlt: "Sprint Fingers home screen",
+        shotHomeTitle: "Home menu",
+        shotHomeText: "Choose your event and jump straight into the stadium atmosphere.",
+        shotProfileAlt: "Sprint Fingers player profile screen",
+        shotProfileTitle: "Player profile",
+        shotProfileText: "Customize your runner and keep an eye on your profile information and performance.",
+        shotWorldAlt: "Sprint Fingers world leaderboard",
+        shotWorldTitle: "World leaderboard",
+        shotWorldText: "Compete with the entire community and see how far your fingers can take you.",
+        summary: "<strong>Sprint Fingers</strong> turns speed into a tactile challenge. Easy to pick up, fun from the very first seconds and addictive enough to make you chase your best time again and again, the game invites you to sprint with your fingertips, improve your records and compete with the world’s best times.",
+        bottomMascotAlt: "Sprint Fingers mascot",
+        ctaTitle: "Ready to step into the starting blocks?",
+        ctaText: "Download Sprint Fingers on iPhone and join the race for just <strong>€0.99</strong>.",
+        ctaButton: 'Buy on the App Store <span class="price">• iPhone • €0.99</span>',
+        ctaNote: "The race starts now!",
+        footer: "Sprint Fingers • iPhone game • €0.99"
+      }
+    };
+
+    const buttons = {
+      fr: document.getElementById("lang-fr"),
+      en: document.getElementById("lang-en")
+    };
+
+    function updateLocalizedImages(lang) {
+      document.querySelectorAll("[data-src-fr][data-src-en]").forEach((img) => {
+        const nextSrc = lang === "en" ? img.dataset.srcEn : img.dataset.srcFr;
+        if (nextSrc && img.getAttribute("src") !== nextSrc) {
+          img.setAttribute("src", nextSrc);
+        }
+      });
+    }
+
+    function setLanguage(lang) {
+      const language = translations[lang] ? lang : "fr";
+      const t = translations[language];
+
+      document.documentElement.lang = language;
+      document.title = t.pageTitle;
+      document.getElementById("meta-description").setAttribute("content", t.metaDescription);
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.dataset.i18n;
+        if (t[key] !== undefined) el.textContent = t[key];
+      });
+
+      document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+        const key = el.dataset.i18nHtml;
+        if (t[key] !== undefined) el.innerHTML = t[key];
+      });
+
+      document.querySelectorAll("[data-i18n-alt]").forEach((el) => {
+        const key = el.dataset.i18nAlt;
+        if (t[key] !== undefined) el.setAttribute("alt", t[key]);
+      });
+
+      updateLocalizedImages(language);
+
+      Object.entries(buttons).forEach(([code, button]) => {
+        const active = code === language;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+
+      localStorage.setItem("sprintFingersLanguage", language);
+    }
+
+    buttons.fr.addEventListener("click", () => setLanguage("fr"));
+    buttons.en.addEventListener("click", () => setLanguage("en"));
+
+    const savedLanguage = localStorage.getItem("sprintFingersLanguage");
+    const browserLanguage = (navigator.language || "").toLowerCase();
+    const initialLanguage = savedLanguage || (browserLanguage.startsWith("fr") ? "fr" : "en");
+    setLanguage(initialLanguage);
+  </script>
+</body>
+</html>
